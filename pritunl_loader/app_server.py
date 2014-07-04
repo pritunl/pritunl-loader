@@ -117,6 +117,8 @@ def get_client_dict(client_id):
 @app.route('/loader/<client_id>', methods=['GET', 'OPTIONS'])
 @cors_headers
 def loader_get(client_id=None):
+    if 'id' in flask.session:
+        app_db.remove(get_remote_addr())
     client_id = client_id or flask.session.get('id') or app_db.get(
         get_remote_addr())
     if not client_id:
@@ -135,6 +137,8 @@ def loader_get(client_id=None):
 @app.route('/loader/<client_id>', methods=['POST'])
 @cors_headers
 def loader_post(client_id=None):
+    if 'id' in flask.session:
+        app_db.remove(get_remote_addr())
     client_id = client_id or flask.session.get('id') or app_db.get(
         get_remote_addr())
     if not client_id:
@@ -174,6 +178,8 @@ def loader_delete(client_id=None):
 @app.route('/poll/<client_id>', methods=['GET', 'OPTIONS'])
 @cors_headers
 def poll_get(client_id=None):
+    if 'id' in flask.session:
+        app_db.remove(get_remote_addr())
     client_id = client_id or flask.session.get('id') or app_db.get(
         get_remote_addr())
     if not client_id:
