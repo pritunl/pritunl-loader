@@ -52,6 +52,7 @@ def create_droplet(client_id, api_key, region):
     loader = Loader(api_key, region)
     try:
         loader.install()
+        time.sleep(10)
         app_db.dict_remove(client_id, 'error')
         app_db.dict_set(client_id, 'success', ('Your Pritunl server has ' +
             'successfully launched, you will be emailed a new root ' +
