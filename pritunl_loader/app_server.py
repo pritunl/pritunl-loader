@@ -15,6 +15,7 @@ import threading
 import functools
 import werkzeug.debug.tbtools
 import redis
+import logging
 
 app = flask.Flask('pritunl_loader')
 app.secret_key = os.urandom(32)
@@ -61,26 +62,31 @@ def create_droplet(client_id, api_key, region):
             '"admin" at: <a href="https://%s:9700/" target="_blank">' +
             'https://%s:9700/</a>') % (loader.host, loader.host))
     except InvalidApiKey:
+        logging.exception('InvalidApiKey')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, DigitalOcean API token is invalid.')
     except KeyImportError:
+        logging.exception('KeyImportError')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, unable to import ssh key into DigitalOcean.')
     except CreateDropletError:
+        logging.exception('CreateDropletError')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, unable to create droplet.')
     except ResetPasswordError:
+        logging.exception('ResetPasswordError')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, failed to reset password.')
     except DropletTimeout:
+        logging.exception('DropletTimeout')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, connection to droplet timed out.')
     except DropletExecError:
+        logging.exception('DropletExecError')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, failed to execute command on server.')
     except:
-        traceback = werkzeug.debug.tbtools.get_current_traceback()
-        print traceback.render_summary()
+        logging.exception('Unknown')
         app_db.dict_set(client_id, 'error', 'Failed to create Pritunl ' +
         'server, unknown error occurred.')
     app_db.dict_set(client_id, 'status', 'f')
