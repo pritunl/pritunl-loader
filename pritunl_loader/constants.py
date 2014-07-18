@@ -2,7 +2,7 @@ import os
 
 KEY_TEMP_DIR = ''
 API_URL = 'https://api.digitalocean.com/v2'
-LOADER_TIMEOUT = 180
+LOADER_TIMEOUT = 360
 CONNECT_TIMEOUT = 30
 DROPLET_TIMEOUT = 360
 CLIENT_EXPIRE = 900
