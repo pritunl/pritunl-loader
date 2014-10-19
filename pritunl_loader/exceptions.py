@@ -1,6 +1,9 @@
 class LoaderError(Exception):
     pass
 
+class OauthError(LoaderError):
+    pass
+
 class InvalidApiKey(LoaderError):
     pass
 

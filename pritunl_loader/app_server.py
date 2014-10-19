@@ -16,6 +16,8 @@ import functools
 import werkzeug.debug.tbtools
 import redis
 import logging
+import requests
+import urllib
 
 app = flask.Flask('pritunl_loader')
 app.secret_key = os.urandom(32)
@@ -153,7 +155,6 @@ def loader_post(client_id=None):
         app_db.expire(get_remote_addr(), CLIENT_IP_EXPIRE)
         app_db.set(get_remote_addr(), client_id)
 
-    api_key = filter_str(flask.request.json['api_key'])[:256]
     region = filter_str(flask.request.json['region'])[:256]
 
     if app_db.dict_get(client_id, 'status') != 't':
@@ -162,12 +163,65 @@ def loader_post(client_id=None):
             return jsonify(get_client_dict(client_id), 503)
         redis_conn.set(uuid.uuid4().hex, str(int(time.time())))
         app_db.expire(client_id, CLIENT_EXPIRE)
-        app_db.dict_set(client_id, 'status', 't')
+        app_db.dict_set(client_id, 'status', 'a')
         app_db.dict_set(client_id, 'region', region)
+
+    return jsonify({
+        'oauth_url': '%s/oauth/authorize?%s' % (
+            OAUTH_API_URL, urllib.urlencode({
+                'client_id': OAUTH_CLIENT_ID,
+                'redirect_uri': OAUTH_REDIRECT_URI,
+                'response_type': 'code',
+                'scope': 'read write',
+                'state': uuid.uuid4().hex,
+            })),
+    })
+
+@app.route('/oauth', methods=['GET'])
+@cors_headers
+def oauth_get():
+    client_id = flask.session.get('id') or app_db.get(get_remote_addr())
+    oauth_error = flask.request.args.get('error')
+    oauth_code = flask.request.args.get('code')
+
+    limit_key = get_remote_addr() + '_limit'
+    if app_db.get(limit_key):
+        return flask.redirect(OAUTH_REDIRECT_HOME_URI + '/?error=err#install')
+    app_db.expire(limit_key, 3)
+    app_db.set(limit_key, 't')
+
+    if oauth_error == 'access_denied' or not oauth_code:
+        return flask.redirect(OAUTH_REDIRECT_HOME_URI + '/?error=oad#install')
+
+    response = requests.post(
+        '%s/oauth/token' % OAUTH_API_URL,
+        params={
+            'grant_type': 'authorization_code',
+            'code': oauth_code,
+            'client_id': OAUTH_CLIENT_ID,
+            'client_secret': OAUTH_CLIENT_SECRET,
+            'redirect_uri': OAUTH_REDIRECT_URI,
+        },
+    )
+
+    if response.status_code != 200:
+        return flask.redirect(OAUTH_REDIRECT_HOME_URI + '/?error=oad#install')
+
+    api_key = response.json()['access_token']
+
+    status = app_db.dict_get(client_id, 'status')
+    if status == 'a':
+        app_db.expire(client_id, CLIENT_EXPIRE)
+        app_db.dict_set(client_id, 'status', 't')
+        region = app_db.dict_get(client_id, 'region')
         threading.Thread(target=create_droplet,
             args=(client_id, api_key, region)).start()
+    elif status == 't':
+        pass
+    else:
+        return flask.redirect(OAUTH_REDIRECT_HOME_URI + '/?error=err#install')
 
-    return jsonify(get_client_dict(client_id))
+    return flask.redirect(OAUTH_REDIRECT_HOME_URI + '/#install')
 
 @app.route('/loader', methods=['DELETE'])
 @app.route('/loader/<client_id>', methods=['DELETE'])
