@@ -167,7 +167,7 @@ class Loader:
                 except:
                     time.sleep(3)
                     if i >= 11:
-                        raise DropletTimeout('SSH connection error timed out')
+                        raise
             for command in (
                         'apt-get install -qq -y python-software-properties',
                         'add-apt-repository -y ppa:pritunl',
