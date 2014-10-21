@@ -156,17 +156,18 @@ class Loader:
                 self.create_droplet()
             client = paramiko.SSHClient()
             client.set_missing_host_key_policy(IgnorePolicy())
-            for i in xrange(6):
+            for i in xrange(40):
                 try:
                     client.connect(self.host, username='root',
                         pkey=self.private_key, timeout=CONNECT_TIMEOUT)
                 except socket.timeout:
-                    if i == 5:
+                    time.sleep(1)
+                    if i >= 11:
                         raise DropletTimeout('SSH connection timed out')
                 except:
-                    time.sleep(5)
-                    if i == 5:
-                        raise DropletTimeout('SSH connection timed out')
+                    time.sleep(3)
+                    if i >= 11:
+                        raise DropletTimeout('SSH connection error timed out')
             for command in (
                         'apt-get install -qq -y python-software-properties',
                         'add-apt-repository -y ppa:pritunl',
