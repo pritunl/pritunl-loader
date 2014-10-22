@@ -181,5 +181,6 @@ class Loader:
                     raise DropletTimeout('SSH connection timed out')
             client.close()
             self.reset_password()
+            time.sleep(30)
         finally:
             self.remove_key()
