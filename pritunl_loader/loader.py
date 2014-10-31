@@ -169,7 +169,6 @@ class Loader:
                     if i >= 11:
                         raise
             for command in (
-                        'apt-get install -qq -y python-software-properties',
                         'add-apt-repository -y ppa:pritunl',
                         'apt-get update -qq',
                         'apt-get install -qq -y pritunl',
