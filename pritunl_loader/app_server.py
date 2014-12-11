@@ -40,7 +40,7 @@ def cors_headers(call):
         else:
             response = flask.make_response(call(*args, **kwargs))
 
-        if flask.request.referrer.startswith('https'):
+        if (flask.request.referrer or 'https').startswith('https'):
             origin_url = 'https:' + ORIGIN_URL
         else:
             origin_url = 'http:' + ORIGIN_URL
