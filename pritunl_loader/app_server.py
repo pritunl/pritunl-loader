@@ -39,7 +39,13 @@ def cors_headers(call):
             response = app.make_default_options_response()
         else:
             response = flask.make_response(call(*args, **kwargs))
-        response.headers.add('Access-Control-Allow-Origin', ORIGIN_URL)
+
+        if flask.request.referrer.startswith('https'):
+            origin_url = 'https:' + ORIGIN_URL
+        else:
+            origin_url = 'http:' + ORIGIN_URL
+
+        response.headers.add('Access-Control-Allow-Origin', origin_url)
         response.headers.add('Access-Control-Allow-Methods',
             'GET,PUT,POST,DELETE,OPTIONS')
         response.headers.add('Access-Control-Max-Age', '600')
