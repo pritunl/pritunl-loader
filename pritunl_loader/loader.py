@@ -101,9 +101,11 @@ class Loader:
             }),
         )
         if response.status_code < 200 or response.status_code >= 300:
-            if response.json().get('id') == 'unauthorized':
+            response_json = response.json()
+            if response_json.get('id') == 'unauthorized':
                 raise InvalidApiKey('API key is invalid')
-            raise CreateDropletError('Failed to create droplet')
+            raise CreateDropletError('Failed to create droplet. %r' % (
+                response_json))
         self.droplet_id = response.json()['droplet']['id']
 
         start_time = int(time.time())
