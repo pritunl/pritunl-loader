@@ -67,7 +67,7 @@ def create_droplet(client_id, api_key, region):
             'successfully launched, you will be emailed a new root ' +
             'password to access the droplet. You may login to your ' +
             'Pritunl server using the default username and password ' +
-            '"admin" at: <a href="https://%s:9700/" target="_blank">' +
+            '"pritunl" at: <a href="https://%s:9700/" target="_blank">' +
             'https://%s:9700/</a>') % (loader.host, loader.host))
     except InvalidApiKey:
         logging.exception('InvalidApiKey')
